@@ -146,6 +146,10 @@ class User {
     this.loginToken = token;
   }
 
+  async addFavorite(story){
+
+  }
+
   /** Register new user in API, make User instance & return it.
    *
    * - username: a new username
@@ -159,18 +163,18 @@ class User {
       method: "POST",
       data: { user: { username, password, name } },
     });
-
     return new User(
       {
-        username: user.username,
-        name: user.name,
-        createdAt: user.createdAt,
-        favorites: user.favorites,
-        ownStories: user.stories
+        username: response.data.user.username,
+        name: response.data.user.name,
+        createdAt: response.data.user.createdAt,
+        favorites: response.data.user.favorites,
+        ownStories: response.data.user.stories
       },
       response.data.token
     );
   }
+  
 
   async addFavorite(story) {
     await this.alterFavorites(story, 'POST');
