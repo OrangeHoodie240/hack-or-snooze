@@ -10,6 +10,7 @@ function navAllStories(evt) {
   console.debug("navAllStories", evt);
   hidePageComponents();
   putStoriesOnPage();
+  $formSection.hide();
 }
 
 $body.on("click", "#nav-all", navAllStories);
@@ -39,7 +40,8 @@ function updateNavOnLogin() {
 }
 
 function navSubmitClick(){
-    $formSection.toggle(); 
+    $formSection.show(); 
+    $allStoriesList.html('');
 }
 
 $navSubmit.click(navSubmitClick);

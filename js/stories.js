@@ -36,6 +36,7 @@ function generateStoryMarkup(story) {
   return $(s);
 }
 
+// for displaying an item as a favorite or not a favorite
 function getIcon(storyId, withDiv = true){
   if(currentUser){
     let s = (withDiv) ? '<div class="favoritable">' : '';
@@ -110,7 +111,6 @@ async function toggleFavorite({target}){
     else{
 
       // find story and add it to user's favorites 
-      let storyList = await StoryList.getStories();
       story = storyList.stories.find(story => story.storyId === storyId)
       await currentUser.addFavorite(story);
     }
@@ -119,7 +119,6 @@ async function toggleFavorite({target}){
     parent.innerHTML = getIcon(storyId, false);
   }
 }
-
 $allStoriesList.click(toggleFavorite);
 
 function loadFavoriteStories(){
@@ -128,13 +127,13 @@ function loadFavoriteStories(){
     let $li = generateStoryMarkup(favorite);
     $allStoriesList.append($li);
   }
+  $formSection.hide(); 
 }
 $navFavorites.click(loadFavoriteStories);
 
 async function loadMySubmissions(){
-  let stories = await StoryList.getStories();
-  stories = stories.stories; 
-  stories = stories.filter(story => story.username === currentUser.username);
+  let stories = await getMyStories();
+
   $allStoriesList.html('');
   for(let story of stories){
     let $li = generateStoryMarkup(story);
@@ -142,33 +141,29 @@ async function loadMySubmissions(){
     $('<div class="deletable"><i class="fas fa-backspace"></i></div>').appendTo($li);
     $allStoriesList.append($li);
   }
+  $formSection.hide();
 }
 $navMySubmissions.click(loadMySubmissions);
 
-/*
-
-  let s = `<li id="${story.storyId}">
-             <a href="${story.url}" target="a_blank" class="story-link">
-              ${story.title}
-             </a>
-             <small class="story-hostname">(${hostName})</small>
-             <small class="story-author">by ${story.author}</small>
-             <small class="story-user">posted by ${story.username}</small>
-            ${getIcon(story.storyId)}
-*/
+async function getMyStories(){
+  let stories = await StoryList.getStories();
+  stories = stories.stories; 
+  return stories.filter(story => story.username === currentUser.username);
+}
 
 async function deleteHandler({target}){
   if(target.parentElement.classList.contains('deletable')){
     let li = target.parentElement.parentElement; 
     let storyId = li.id; 
     
+    // remove from api
     await StoryList.deleteStory(currentUser, storyId); 
+    
+    // remove li from page
     li.remove(); 
     
     // remove story from storyList
-    let storyIndex = storyList.stories.findIndex(story => story.storyId == storyId);
-    storyList.stories.splice(storyIndex,1);
-    
+    storyList.removeById(storyId);    
   } 
   
 }

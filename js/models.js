@@ -108,6 +108,13 @@ class StoryList {
     
   }
 
+  // not for deleting from api
+  removeById(storyId){
+    let index = this.stories.findIndex(story => story.storyId == storyId);
+    if(index > -1){
+      this.stories.splice(index, 1);
+    }
+  }
 }
 /******************************************************************************
  * User: a user in the system (only used to represent the current user)
@@ -173,26 +180,33 @@ class User {
     await this.alterFavorites(story, 'DELETE');
   }
 
+  // logic for both delete and add favorites method
   async alterFavorites(story, method){
+    let resp = await this.alterFavoritesApi(story, method);
+
+    if (resp.ok) {
+      this.alterFavoritesList(story, method);
+    }
+  }
+
+  async alterFavoritesApi(story, method){
     let postUrl = BASE_URL + `/users/${this.username}/favorites/${story.storyId}`;
 
     let body = { token: this.loginToken };
     body = JSON.stringify(body);
-
-    let resp = await fetch(postUrl, { headers: {Accept: 'application/json'}, method, body });
-
-    if (resp.ok) {
-      if(method === 'POST'){
-        this.favorites.push(story);
-      }
-      else{
-        this.favorites = this.favorites.filter(favStory => {
-          return favStory.storyId !== story.storyId; 
-        });
-      }
-    }
+    return fetch(postUrl, { headers: {Accept: 'application/json'}, method, body });
   }
 
+  async alterFavoritesList(story, method){
+    if(method === 'POST'){
+      this.favorites.push(story);
+    }
+    else{
+      this.favorites = this.favorites.filter(favStory => {
+        return favStory.storyId !== story.storyId; 
+      });
+    }
+  }
 
   /** Login in user with API, make User instance & return it.
 
